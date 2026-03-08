@@ -84,14 +84,17 @@ pub mod fullname_lossy {
 /// ```
 pub mod bstring_vec_lossy {
     use bstr::{BString, ByteSlice};
-    use serde::Serialize;
+    use serde::ser::SerializeSeq;
 
     pub fn serialize<S>(v: &[BString], s: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
     {
-        let vec: Vec<String> = v.iter().map(|v| v.to_str_lossy().into()).collect();
-        vec.serialize(s)
+        let mut seq = s.serialize_seq(Some(v.len()))?;
+        for item in v {
+            seq.serialize_element(&item.to_str_lossy())?;
+        }
+        seq.end()
     }
 }
 
@@ -134,8 +137,13 @@ pub fn as_string_lossy_vec_remote_name<S>(
 where
     S: serde::Serializer,
 {
-    let vec: Vec<String> = v.iter().map(|v| v.as_bstr().to_string()).collect();
-    vec.serialize(s)
+    use bstr::ByteSlice;
+    use serde::ser::SerializeSeq;
+    let mut seq = s.serialize_seq(Some(v.len()))?;
+    for item in v {
+        seq.serialize_element(&item.as_bstr().to_str_lossy())?;
+    }
+    seq.end()
 }
 
 #[cfg(feature = "legacy")]
@@ -262,14 +270,18 @@ pub mod object_id {
 pub mod object_id_vec {
     use std::str::FromStr;
 
-    use serde::{Deserialize, Deserializer, Serialize};
+    use serde::{Deserialize, Deserializer};
 
     pub fn serialize<S>(v: &[gix::ObjectId], s: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
     {
-        let vec: Vec<String> = v.iter().map(|v| v.to_string()).collect();
-        vec.serialize(s)
+        use serde::ser::SerializeSeq;
+        let mut seq = s.serialize_seq(Some(v.len()))?;
+        for id in v {
+            seq.serialize_element(&id.to_string())?;
+        }
+        seq.end()
     }
 
     pub fn deserialize<'de, D>(d: D) -> Result<Vec<gix::ObjectId>, D::Error>
@@ -299,14 +311,18 @@ pub mod object_id_vec {
 /// }
 /// ```
 pub mod oid_vec {
-    use serde::{Deserialize, Deserializer, Serialize};
+    use serde::{Deserialize, Deserializer};
 
     pub fn serialize<S>(v: &[git2::Oid], s: S) -> Result<S::Ok, S::Error>
     where
         S: serde::Serializer,
     {
-        let vec: Vec<String> = v.iter().map(|v| v.to_string()).collect();
-        vec.serialize(s)
+        use serde::ser::SerializeSeq;
+        let mut seq = s.serialize_seq(Some(v.len()))?;
+        for id in v {
+            seq.serialize_element(&id.to_string())?;
+        }
+        seq.end()
     }
 
     pub fn deserialize<'de, D>(d: D) -> Result<Vec<git2::Oid>, D::Error>
