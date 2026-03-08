@@ -170,7 +170,7 @@ impl SnapshotExt for but_ctx::Context {
         let details =
             SnapshotDetails::new(OperationKind::DeleteBranch).with_trailers(vec![Trailer {
                 key: "name".to_string(),
-                value: branch_name.to_string(),
+                value: branch_name,
             }]);
 
         self.create_snapshot(details, perm)?;
@@ -258,10 +258,7 @@ fn result_trailer(result: Result<Option<String>, &anyhow::Error>, key: String) -
     match result {
         Ok(v) => {
             if let Some(v) = v {
-                vec![Trailer {
-                    key,
-                    value: v.clone(),
-                }]
+                vec![Trailer { key, value: v }]
             } else {
                 vec![]
             }
