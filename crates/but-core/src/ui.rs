@@ -22,7 +22,7 @@ impl WorktreeChanges {
         repo: &gix::Repository,
         context_lines: u32,
     ) -> anyhow::Result<BString> {
-        changes_to_unidiff(self.changes.clone(), repo, context_lines)
+        changes_to_unidiff(&self.changes, repo, context_lines)
     }
 }
 
@@ -59,19 +59,23 @@ impl TreeChanges {
         repo: &gix::Repository,
         context_lines: u32,
     ) -> anyhow::Result<BString> {
-        changes_to_unidiff(self.changes.clone(), repo, context_lines)
+        changes_to_unidiff(&self.changes, repo, context_lines)
     }
 }
 
 /// Notably skip changes that
 fn changes_to_unidiff(
-    changes: Vec<TreeChange>,
+    changes: &[TreeChange],
     repo: &gix::Repository,
     context_lines: u32,
 ) -> anyhow::Result<BString> {
     let mut out = BString::default();
     for change in changes {
-        let Some(diff) = crate::TreeChange::from(change).unified_diff(repo, context_lines)? else {
+        let core_change = crate::TreeChange {
+            path: change.path_bytes.clone(),
+            status: change.status.clone().into(),
+        };
+        let Some(diff) = core_change.unified_diff(repo, context_lines)? else {
             continue;
         };
         out.extend_from_slice(&diff);
@@ -361,16 +365,16 @@ impl From<&(crate::TreeChange, crate::UnifiedPatch)> for ChangeUnifiedDiff {
 #[serde(rename_all = "camelCase")]
 pub struct FlatChangeUnifiedDiff {
     pub path: BStringForFrontend,
-    pub status: String,
+    pub status: &'static str,
     pub diff: crate::UnifiedPatch,
 }
 
-fn status_to_string(status: &crate::TreeStatus) -> String {
+fn status_to_string(status: &crate::TreeStatus) -> &'static str {
     match status {
-        crate::TreeStatus::Addition { .. } => "addition".to_string(),
-        crate::TreeStatus::Deletion { .. } => "deletion".to_string(),
-        crate::TreeStatus::Modification { .. } => "modification".to_string(),
-        crate::TreeStatus::Rename { .. } => "rename".to_string(),
+        crate::TreeStatus::Addition { .. } => "addition",
+        crate::TreeStatus::Deletion { .. } => "deletion",
+        crate::TreeStatus::Modification { .. } => "modification",
+        crate::TreeStatus::Rename { .. } => "rename",
     }
 }
 
