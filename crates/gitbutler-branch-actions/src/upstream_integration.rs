@@ -606,7 +606,7 @@ pub(crate) fn integrate_upstream(
             }
 
             // Dissociate closed reviews
-            for head in stack.clone().heads.iter() {
+            for head in stack.heads.clone().iter() {
                 let branch_name = head.name.to_string();
                 if let Some(review) = review_map.get(&branch_name)
                     && !review.is_open()
