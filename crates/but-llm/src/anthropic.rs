@@ -599,23 +599,25 @@ async fn stream_response(
     let mut response_text = String::new();
     let mut buffer = String::new();
 
+    let mut line_buf = String::new();
     while let Some(chunk) = stream.next().await {
         let bytes = chunk?;
         let text = String::from_utf8_lossy(&bytes);
 
         buffer.push_str(&text);
 
-        // Process complete lines
+        // Process complete lines, reusing line_buf to avoid per-line allocation
         while let Some(line_end) = buffer.find('\n') {
-            let line_owned = buffer[..line_end].trim().to_string();
-            buffer = buffer[line_end + 1..].to_string();
+            line_buf.clear();
+            line_buf.extend(buffer.drain(..=line_end));
+            let line = line_buf.trim();
 
-            if line_owned.is_empty() {
+            if line.is_empty() {
                 continue;
             }
 
             // SSE format: "data: {...}"
-            if let Some(data) = line_owned.strip_prefix("data: ") {
+            if let Some(data) = line.strip_prefix("data: ") {
                 if data == "[DONE]" {
                     break;
                 }
@@ -740,23 +742,25 @@ async fn tool_calling_stream(
     let mut tool_calls: HashMap<String, ToolCall> = HashMap::new();
     let mut current_tool_id: Option<String> = None;
 
+    let mut line_buf = String::new();
     while let Some(chunk) = stream.next().await {
         let bytes = chunk?;
         let text = String::from_utf8_lossy(&bytes);
 
         buffer.push_str(&text);
 
-        // Process complete lines
+        // Process complete lines, reusing line_buf to avoid per-line allocation
         while let Some(line_end) = buffer.find('\n') {
-            let line_owned = buffer[..line_end].trim().to_string();
-            buffer = buffer[line_end + 1..].to_string();
+            line_buf.clear();
+            line_buf.extend(buffer.drain(..=line_end));
+            let line = line_buf.trim();
 
-            if line_owned.is_empty() {
+            if line.is_empty() {
                 continue;
             }
 
             // SSE format: "data: {...}"
-            if let Some(data) = line_owned.strip_prefix("data: ") {
+            if let Some(data) = line.strip_prefix("data: ") {
                 if data == "[DONE]" {
                     break;
                 }
@@ -800,11 +804,11 @@ async fn tool_calling_stream(
                         "message_stop" => {
                             // Check if we have tool calls to return
                             if !tool_calls.is_empty() {
-                                let calls: Vec<ToolCall> = tool_calls.values().cloned().collect();
+                                let calls: Vec<ToolCall> = tool_calls.into_values().collect();
                                 let text = if response_text.is_empty() {
                                     None
                                 } else {
-                                    Some(response_text.clone())
+                                    Some(response_text)
                                 };
                                 return Ok((Some(calls), text));
                             }
@@ -818,7 +822,7 @@ async fn tool_calling_stream(
 
     // If we have tool calls, return them
     if !tool_calls.is_empty() {
-        let calls: Vec<ToolCall> = tool_calls.values().cloned().collect();
+        let calls: Vec<ToolCall> = tool_calls.into_values().collect();
         let text = if response_text.is_empty() {
             None
         } else {
@@ -842,11 +846,11 @@ fn handle_text_response(
     text_response_buffer: &mut Vec<String>,
     messages: &mut Vec<AnthropicMessage>,
 ) {
-    text_response_buffer.push(text_response.clone());
     messages.push(AnthropicMessage {
         role: "assistant".to_string(),
-        content: serde_json::json!([{"type": "text", "text": text_response}]),
+        content: serde_json::json!([{"type": "text", "text": &text_response}]),
     });
+    text_response_buffer.push(text_response);
 }
 
 fn convert_tool_to_anthropic_format(tool: &dyn but_tools::tool::Tool) -> serde_json::Value {
