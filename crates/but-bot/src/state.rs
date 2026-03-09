@@ -239,7 +239,7 @@ impl AgentState {
 
 impl Toolset for AgentState {
     fn register_tool<T: Tool>(&mut self, tool: T) {
-        self.tools.insert(tool.name(), std::sync::Arc::new(tool));
+        self.tools.insert(tool.name().into(), std::sync::Arc::new(tool));
     }
 
     fn get(&self, name: &str) -> Option<std::sync::Arc<dyn Tool>> {
@@ -331,12 +331,12 @@ pub struct AddTodosParamters {
 }
 
 impl Tool for AddTodos {
-    fn name(&self) -> String {
-        "add_todos".to_string()
+    fn name(&self) -> &'static str {
+        "add_todos"
     }
 
-    fn description(&self) -> String {
-        "Adds todos to the agent's state".to_string()
+    fn description(&self) -> &'static str {
+        "Adds todos to the agent's state"
     }
 
     fn parameters(&self) -> serde_json::Value {
@@ -371,12 +371,12 @@ pub struct UpdateTodoStatusParameters {
 }
 
 impl Tool for UpdateTodoStatus {
-    fn name(&self) -> String {
-        "update_todo_status".to_string()
+    fn name(&self) -> &'static str {
+        "update_todo_status"
     }
 
-    fn description(&self) -> String {
-        "Updates the status of a todo item in the agent's state".to_string()
+    fn description(&self) -> &'static str {
+        "Updates the status of a todo item in the agent's state"
     }
 
     fn parameters(&self) -> serde_json::Value {
