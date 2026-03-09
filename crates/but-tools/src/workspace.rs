@@ -126,11 +126,11 @@ pub struct CommitParameters {
 ///
 /// Takes in a commit message, target branch name, and a list of file paths to commit.
 impl Tool for Commit {
-    fn name(&self) -> String {
-        "commit".to_string()
+    fn name(&self) -> &'static str {
+        "commit"
     }
 
-    fn description(&self) -> String {
+    fn description(&self) -> &'static str {
         "
         <description>
             Commit file changes to a branch in the workspace.
@@ -142,7 +142,6 @@ impl Tool for Commit {
             If the branch does not exist, it will be created.
         </important_notes>
         "
-        .to_string()
     }
 
     fn parameters(&self) -> serde_json::Value {
@@ -266,17 +265,16 @@ pub struct CreateBranchParameters {
 }
 
 impl Tool for CreateBranch {
-    fn name(&self) -> String {
-        "create_branch".to_string()
+    fn name(&self) -> &'static str {
+        "create_branch"
     }
 
-    fn description(&self) -> String {
+    fn description(&self) -> &'static str {
         "
         <description>
             Create a new branch in the workspace.
         </description>
         "
-        .to_string()
     }
 
     fn parameters(&self) -> serde_json::Value {
@@ -403,11 +401,11 @@ pub struct AmendParameters {
 }
 
 impl Tool for Amend {
-    fn name(&self) -> String {
-        "amend".to_string()
+    fn name(&self) -> &'static str {
+        "amend"
     }
 
-    fn description(&self) -> String {
+    fn description(&self) -> &'static str {
         "
         <description>
             Amend an existing commit on a branch in the workspace.
@@ -420,7 +418,7 @@ impl Tool for Amend {
             - You want to add uncommitted changes to an existing commit.
             - You want to update the commit message of an existing commit.
         </important_notes>
-        ".to_string()
+        "
     }
 
     fn parameters(&self) -> serde_json::Value {
@@ -525,17 +523,16 @@ pub struct GetProjectStatusParameters {
 }
 
 impl Tool for GetProjectStatus {
-    fn name(&self) -> String {
-        "get_project_status".to_string()
+    fn name(&self) -> &'static str {
+        "get_project_status"
     }
 
-    fn description(&self) -> String {
+    fn description(&self) -> &'static str {
         "
         <description>
             Get the current status of the project, including stacks and file changes.
         </description>
         "
-        .to_string()
     }
 
     fn parameters(&self) -> serde_json::Value {
@@ -630,11 +627,11 @@ pub struct MoveFileChangesParameters {
 }
 
 impl Tool for MoveFileChanges {
-    fn name(&self) -> String {
-        "move_file_changes".to_string()
+    fn name(&self) -> &'static str {
+        "move_file_changes"
     }
 
-    fn description(&self) -> String {
+    fn description(&self) -> &'static str {
         "
         <description>
             Move file changes from one commit to another in the workspace.
@@ -645,7 +642,6 @@ impl Tool for MoveFileChanges {
             This is useful when you want to split a commit into more parts.
         </important_notes>
         "
-        .to_string()
     }
 
     fn parameters(&self) -> serde_json::Value {
@@ -733,11 +729,11 @@ pub struct GetCommitDetailsParameters {
 }
 
 impl Tool for GetCommitDetails {
-    fn name(&self) -> String {
-        "get_commit_details".to_string()
+    fn name(&self) -> &'static str {
+        "get_commit_details"
     }
 
-    fn description(&self) -> String {
+    fn description(&self) -> &'static str {
         "
         <description>
             Get details of a specific commit in the workspace.
@@ -749,7 +745,6 @@ impl Tool for GetCommitDetails {
             You'll want to use this tool before moving file changes from one commit to another.
         </important_notes>
         "
-        .to_string()
     }
 
     fn parameters(&self) -> serde_json::Value {
@@ -814,11 +809,11 @@ pub struct GetBranchChangesParameters {
 }
 
 impl Tool for GetBranchChanges {
-    fn name(&self) -> String {
-        "get_branch_changes".to_string()
+    fn name(&self) -> &'static str {
+        "get_branch_changes"
     }
 
-    fn description(&self) -> String {
+    fn description(&self) -> &'static str {
         "
         <description>
             Get the list of file changes for a specific branch in the workspace.
@@ -830,7 +825,6 @@ impl Tool for GetBranchChanges {
             Use this to inspect what files have been changed on a branch.
         </important_notes>
         "
-        .to_string()
     }
 
     fn parameters(&self) -> serde_json::Value {
@@ -947,11 +941,11 @@ pub struct SquashCommitsParameters {
 }
 
 impl Tool for SquashCommits {
-    fn name(&self) -> String {
-        "squash_commits".to_string()
+    fn name(&self) -> &'static str {
+        "squash_commits"
     }
 
-    fn description(&self) -> String {
+    fn description(&self) -> &'static str {
         "
         <description>
             Squash multiple commits in a stack into a single commit.
@@ -963,7 +957,7 @@ impl Tool for SquashCommits {
             Always squash the commits down, meaning newer commits into their parents.
             Remember that the commits listed in the project status are in reverse order, so the first commit in the array is the newest one.
         </important_notes>
-        ".to_string()
+        "
     }
 
     fn parameters(&self) -> serde_json::Value {
@@ -1076,11 +1070,11 @@ pub struct SplitBranchParameters {
 }
 
 impl Tool for SplitBranch {
-    fn name(&self) -> String {
-        "split_branch".to_string()
+    fn name(&self) -> &'static str {
+        "split_branch"
     }
 
-    fn description(&self) -> String {
+    fn description(&self) -> &'static str {
         "
         <description>
             Split off selected files from an existing branch into a new branch.
@@ -1091,7 +1085,7 @@ impl Tool for SplitBranch {
             This will copy the same commit history from the source branch to the new branch, so probably you'll want to amend the commit messages afterwards.
             Use this when you want to organize changes into separate branches.
         </important_notes>
-        ".to_string()
+        "
     }
 
     fn parameters(&self) -> serde_json::Value {
@@ -1213,11 +1207,11 @@ pub struct SplitCommitParameters {
 }
 
 impl Tool for SplitCommit {
-    fn name(&self) -> String {
-        "split_commit".to_string()
+    fn name(&self) -> &'static str {
+        "split_commit"
     }
 
-    fn description(&self) -> String {
+    fn description(&self) -> &'static str {
         "
         <description>
             Split a single commit into multiple new commits, each with its own message and file set.
@@ -1229,7 +1223,6 @@ impl Tool for SplitCommit {
             The order of the shards determines the order of the resulting commits.
         </important_notes>
         "
-        .to_string()
     }
 
     fn parameters(&self) -> serde_json::Value {

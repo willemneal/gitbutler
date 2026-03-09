@@ -47,7 +47,7 @@ impl<'a> WorkspaceToolset<'a> {
 
 impl Toolset for WorkspaceToolset<'_> {
     fn register_tool<T: Tool>(&mut self, tool: T) {
-        self.tools.insert(tool.name(), Arc::new(tool));
+        self.tools.insert(tool.name().into(), Arc::new(tool));
     }
 
     fn get(&self, name: &str) -> Option<Arc<dyn Tool>> {
@@ -61,15 +61,15 @@ impl Toolset for WorkspaceToolset<'_> {
     fn call_tool(&mut self, name: &str, parameters: &str) -> serde_json::Value {
         self.call_tool_inner(name, parameters).unwrap_or_else(|e| {
             serde_json::json!({
-                "error": format!("Failed to call tool '{}': {}", name, e.to_string())
+                "error": format!("Failed to call tool '{name}': {e}")
             })
         })
     }
 }
 
 pub trait Tool: 'static + Send + Sync {
-    fn name(&self) -> String;
-    fn description(&self) -> String;
+    fn name(&self) -> &'static str;
+    fn description(&self) -> &'static str;
     fn parameters(&self) -> serde_json::Value;
     fn call(
         self: Arc<Self>,
@@ -81,7 +81,7 @@ pub trait Tool: 'static + Send + Sync {
 
 pub fn error_to_json(error: &anyhow::Error, action_identifier: &str) -> serde_json::Value {
     serde_json::json!({
-        "error": format!("Failed to {}: {}", action_identifier, error.to_string())
+        "error": format!("Failed to {action_identifier}: {error}")
     })
 }
 
@@ -112,7 +112,7 @@ pub fn result_to_json<T: serde::Serialize>(
 ) -> serde_json::Value {
     match result {
         Ok(entry) => json!({ "result": serde_json::to_value(entry).unwrap_or_else(
-            |e| json!({ "error": format!("Failed to serialize {}: {}", data_identifier, e.to_string())}),
+            |e| json!({ "error": format!("Failed to serialize {data_identifier}: {e}")}),
         )}),
         Err(e) => error_to_json(e, action_identifier),
     }

@@ -7,8 +7,8 @@ impl TryFrom<&dyn Tool> for ChatCompletionTools {
     fn try_from(tool: &dyn Tool) -> Result<ChatCompletionTools, Self::Error> {
         let tool = ChatCompletionTools::Function(ChatCompletionTool {
             function: FunctionObject {
-                name: tool.name(),
-                description: Some(tool.description()),
+                name: tool.name().into(),
+                description: Some(tool.description().into()),
                 parameters: Some(tool.parameters()),
                 strict: Some(false),
             },
