@@ -703,7 +703,7 @@ fn move_file_changes(
     gitbutler_branch_actions::update_workspace_commit(&vb_state, ctx, false)?;
 
     // Update the commit mapping with the new commit ids.
-    for (old_commit_id, new_commit_id) in result.replaced_commits.clone().iter() {
+    for (old_commit_id, new_commit_id) in result.replaced_commits.iter() {
         commit_mapping.insert(*old_commit_id, *new_commit_id);
     }
 
