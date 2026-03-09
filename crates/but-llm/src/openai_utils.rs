@@ -74,12 +74,7 @@ pub fn structured_output_blocking<
         vec![ChatCompletionRequestSystemMessage::from(system_message).into()];
     let model = model.to_string();
 
-    messages.extend(
-        chat_messages
-            .into_iter()
-            .map(ChatCompletionRequestMessage::from)
-            .collect::<Vec<_>>(),
-    );
+    messages.extend(chat_messages.into_iter().map(ChatCompletionRequestMessage::from));
 
     std::thread::spawn(move || {
         tokio::runtime::Runtime::new()
@@ -99,21 +94,15 @@ pub fn response_blocking(
     let mut messages: Vec<ChatCompletionRequestMessage> =
         vec![ChatCompletionRequestSystemMessage::from(system_message).into()];
 
-    messages.extend(
-        chat_messages
-            .into_iter()
-            .map(ChatCompletionRequestMessage::from)
-            .collect::<Vec<_>>(),
-    );
+    messages.extend(chat_messages.into_iter().map(ChatCompletionRequestMessage::from));
 
     let client = provider.client()?;
-    let messages_owned = messages.clone();
     let model = model.to_string();
 
     std::thread::spawn(move || {
         tokio::runtime::Runtime::new()
             .unwrap()
-            .block_on(response(&client, messages_owned, model))
+            .block_on(response(&client, messages, model))
     })
     .join()
     .unwrap()
@@ -126,14 +115,12 @@ pub fn tool_calling_blocking(
     model: &str,
 ) -> anyhow::Result<async_openai::types::chat::CreateChatCompletionResponse> {
     let client = provider.client()?;
-    let messages_owned = messages.clone();
-    let tools_owned = tools.clone();
     let model = model.to_string();
 
     std::thread::spawn(move || {
         tokio::runtime::Runtime::new()
             .unwrap()
-            .block_on(tool_calling(&client, messages_owned, tools_owned, model))
+            .block_on(tool_calling(&client, messages, tools, model))
     })
     .join()
     .unwrap()
@@ -149,21 +136,15 @@ pub fn stream_response_blocking(
     let mut messages: Vec<ChatCompletionRequestMessage> =
         vec![ChatCompletionRequestSystemMessage::from(system_message).into()];
 
-    messages.extend(
-        chat_messages
-            .into_iter()
-            .map(ChatCompletionRequestMessage::from)
-            .collect::<Vec<_>>(),
-    );
+    messages.extend(chat_messages.into_iter().map(ChatCompletionRequestMessage::from));
 
     let client = provider.client()?;
-    let messages_owned = messages.clone();
     let model = model.to_string();
 
     std::thread::spawn(move || {
         tokio::runtime::Runtime::new()
             .unwrap()
-            .block_on(stream_response(&client, messages_owned, model, on_token))
+            .block_on(stream_response(&client, messages, model, on_token))
     })
     .join()
     .unwrap()
@@ -177,8 +158,6 @@ pub fn tool_calling_stream_blocking(
     on_token: impl Fn(&str) + Send + Sync + 'static,
 ) -> anyhow::Result<StreamToolCallResult> {
     let client = provider.client()?;
-    let messages_owned = messages.clone();
-    let tools_owned = tools.clone();
     let model = model.to_string();
 
     std::thread::spawn(move || {
@@ -186,8 +165,8 @@ pub fn tool_calling_stream_blocking(
             .unwrap()
             .block_on(tool_calling_stream(
                 &client,
-                messages_owned,
-                tools_owned,
+                messages,
+                tools,
                 model,
                 on_token,
             ))
@@ -205,12 +184,7 @@ pub fn tool_calling_loop(
     let mut messages: Vec<ChatCompletionRequestMessage> =
         vec![ChatCompletionRequestSystemMessage::from(system_message).into()];
 
-    messages.extend(
-        chat_messages
-            .into_iter()
-            .map(ChatCompletionRequestMessage::from)
-            .collect::<Vec<_>>(),
-    );
+    messages.extend(chat_messages.into_iter().map(ChatCompletionRequestMessage::from));
 
     let open_ai_tools = tool_set
         .list()
@@ -314,12 +288,7 @@ pub fn tool_calling_loop_stream(
     let mut messages: Vec<ChatCompletionRequestMessage> =
         vec![ChatCompletionRequestSystemMessage::from(system_message).into()];
 
-    messages.extend(
-        chat_messages
-            .into_iter()
-            .map(ChatCompletionRequestMessage::from)
-            .collect::<Vec<_>>(),
-    );
+    messages.extend(chat_messages.into_iter().map(ChatCompletionRequestMessage::from));
 
     let open_ai_tools = tool_set
         .list()
@@ -550,7 +519,7 @@ async fn tool_calling(
 ) -> anyhow::Result<async_openai::types::chat::CreateChatCompletionResponse> {
     let request = CreateChatCompletionRequestArgs::default()
         .model(model)
-        .messages(messages.clone())
+        .messages(messages)
         .tools(tools)
         .build()?;
 
@@ -567,7 +536,7 @@ async fn stream_response(
 ) -> anyhow::Result<Option<String>> {
     let request = CreateChatCompletionRequestArgs::default()
         .model(model)
-        .messages(messages.clone())
+        .messages(messages)
         .build()?;
 
     let mut stream = client.chat().create_stream(request).await?;
@@ -605,7 +574,7 @@ async fn tool_calling_stream(
 ) -> anyhow::Result<StreamToolCallResult> {
     let request = CreateChatCompletionRequestArgs::default()
         .model(model)
-        .messages(messages.clone())
+        .messages(messages)
         .tools(tools)
         .build()?;
 
@@ -658,18 +627,9 @@ async fn tool_calling_stream(
                     async_openai::types::chat::FinishReason::ToolCalls
                 )
             {
-                let tool_call_states_clone = tool_call_states.clone();
-
                 let tool_calls_to_process = {
-                    let states_lock = tool_call_states_clone.lock().await;
-                    states_lock
-                        .values()
-                        .map(|state| ToolCall {
-                            id: state.id.clone(),
-                            name: state.name.clone(),
-                            arguments: state.arguments.clone(),
-                        })
-                        .collect::<Vec<ToolCall>>()
+                    let mut states_lock = tool_call_states.lock().await;
+                    states_lock.drain().map(|(_, state)| state).collect::<Vec<ToolCall>>()
                 };
 
                 return Ok((Some(tool_calls_to_process), response_text));
