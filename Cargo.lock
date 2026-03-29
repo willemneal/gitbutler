@@ -897,6 +897,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "but-ai"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "schemars 1.2.1",
+ "serde",
+ "serde_json",
+ "tracing",
+]
+
+[[package]]
 name = "but-api"
 version = "0.0.0"
 dependencies = [

@@ -60,6 +60,7 @@ members = [
     "crates/but-bot", # 📄TBD
     # 👉Unclear purpose (a mix of everything?); lacks tests and docs. Uses legacy crates (a lot).
     "crates/but-tools", # 📄TBD
+    "crates/but-ai",
     # 👉No tests, lacks top-level docs, purpose somewhat unclear.
     "crates/but-llm", # 📄TBD
     # 👉lacks top-level docs and docs.
@@ -163,6 +164,7 @@ but-action = { path = "crates/but-action" }
 but-bot = { path = "crates/but-bot" }
 but-status = { path = "crates/but-status" }
 but-tools = { path = "crates/but-tools" }
+but-ai = { path = "crates/but-ai" }
 but-api = { path = "crates/but-api" }
 but-api-macros = { path = "crates/but-api-macros" }
 but-claude = { path = "crates/but-claude" }
